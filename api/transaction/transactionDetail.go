@@ -26,6 +26,8 @@ func New(cfg config.FeatureFlag, storer TxDetailStorer) *handler {
 	return &handler{cfg, storer}
 }
 
+//=========================================================
+//GET /api/v1/spenders/{id}/transactions
 /*
 {
 	"transactions": [
@@ -145,43 +147,6 @@ func (p *Postgres) GetTransactionDetailBySpenderId(ctx context.Context, id strin
 		Summary:      CalcTransactionSummary(txs),
 		Pagination:   PaginationInfo{page, totalPages, limit},
 	}, nil
-
-	/*
-		return TransactionWithDetail{
-			Transactions: []Transaction{
-				{
-					ID:              "1",
-					Date:            "2024-04-30T09:00:00.000Z",
-					Amount:          1000,
-					Category:        "Food",
-					TransactionType: "expense",
-					SpenderID:       1,
-					Note:            "Lunch",
-					ImageURL:        "https://example.com/image1.jpg",
-				},
-				{
-					ID:              "2",
-					Date:            "2024-04-29T19:00:00.000Z",
-					Amount:          2000,
-					Category:        "Transport",
-					TransactionType: "income",
-					SpenderID:       1,
-					Note:            "Salary",
-					ImageURL:        "https://example.com/image2.jpg",
-				},
-			},
-			Summary: TransactionSummary{
-				TotalIncome:    2000,
-				TotalExpenses:  1000,
-				CurrentBalance: 1000,
-			},
-			Pagination: PaginationInfo{
-				CurrentPage: 1,
-				TotalPages:  1,
-				PerPage:     10,
-			},
-		}, nil
-	*/
 }
 
 func CalcTransactionSummary(txs []Transaction) TransactionSummary {
@@ -205,3 +170,6 @@ func CalcTransactionSummary(txs []Transaction) TransactionSummary {
 		CurrentBalance: totalIncome - totalExpenses,
 	}
 }
+
+//=========================================================
+// GET /api/v1/spenders/{id}/transactions/summary
