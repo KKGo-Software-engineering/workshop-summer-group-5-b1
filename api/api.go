@@ -8,6 +8,7 @@ import (
 	"github.com/KKGo-Software-engineering/workshop-summer/api/health"
 	"github.com/KKGo-Software-engineering/workshop-summer/api/mlog"
 	"github.com/KKGo-Software-engineering/workshop-summer/api/spender"
+	"github.com/KKGo-Software-engineering/workshop-summer/api/transaction"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -15,6 +16,10 @@ import (
 
 type Server struct {
 	*echo.Echo
+}
+
+type Postgres struct {
+	Db *sql.DB
 }
 
 func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
@@ -34,6 +39,11 @@ func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
 		v1.GET("/spenders", h.GetAll)
 		v1.POST("/spenders", h.Create)
 		v1.GET("/spenders/:id", h.GetByID)
+	}
+
+	{
+		h := transaction.New(cfg.FeatureFlag, &transaction.Postgres{Db: db})
+		v1.GET("/spenders/:id/transactions", h.GetTransactionDetailBySpenderIdHandler)
 	}
 
 	return &Server{e}

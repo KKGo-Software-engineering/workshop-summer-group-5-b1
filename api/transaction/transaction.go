@@ -1,14 +1,14 @@
 package transaction
 
 type Transaction struct {
-	ID              string `json:"id"`
-	Date            string `json:"date"`
-	Amount          int    `json:"amount"`
-	Category        string `json:"category"`
-	TransactionType string `json:"transaction_type"`
-	SpenderID       int    `json:"spender_id"`
-	Note            string `json:"note"`
-	ImageURL        string `json:"image_url"`
+	ID              string  `json:"id"`
+	Date            string  `json:"date"`
+	Amount          float64 `json:"amount"`
+	Category        string  `json:"category"`
+	TransactionType string  `json:"transaction_type"`
+	SpenderID       int     `json:"spender_id"`
+	Note            string  `json:"note"`
+	ImageURL        string  `json:"image_url"`
 }
 
 /*
@@ -49,9 +49,9 @@ type Transaction struct {
 */
 
 type TransactionSummary struct {
-	TotalIncome    int `json:"total_income"`
-	TotalExpenses  int `json:"total_expenses"`
-	CurrentBalance int `json:"current_balance"`
+	TotalIncome    float64 `json:"total_income"`
+	TotalExpenses  float64 `json:"total_expenses"`
+	CurrentBalance float64 `json:"current_balance"`
 }
 
 type PaginationInfo struct {

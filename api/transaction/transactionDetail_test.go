@@ -1,6 +1,7 @@
 package transaction
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -109,6 +110,6 @@ type StubTxDetailStorer struct {
 	txDetail TransactionWithDetail
 }
 
-func (s StubTxDetailStorer) GetTransactionDetailBySpenderId(id string) (TransactionWithDetail, error) {
+func (s StubTxDetailStorer) GetTransactionDetailBySpenderId(ctx context.Context, id string, offset int, limit int) (TransactionWithDetail, error) {
 	return s.txDetail, nil
 }

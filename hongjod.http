@@ -1,3 +1,7 @@
-@HostAddress = http://localhost:8080
+@HostAddress = http://localhost:8080/api/v1
 
-GET /api/v1/spenders/1
+GET {{HostAddress}}/spenders/1
+
+
+### Get Speender Transactions by Spender ID
+GET {{HostAddress}}/spenders/1/transactions

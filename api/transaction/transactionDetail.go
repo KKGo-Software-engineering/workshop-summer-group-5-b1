@@ -1,7 +1,11 @@
 package transaction
 
 import (
+	"context"
+	"database/sql"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/KKGo-Software-engineering/workshop-summer/api/config"
 	"github.com/KKGo-Software-engineering/workshop-summer/api/mlog"
@@ -10,16 +14,16 @@ import (
 )
 
 type handler struct {
-	flag config.FeatureFlag
-	db   TxDetailStorer
+	flag   config.FeatureFlag
+	storer TxDetailStorer
 }
 
 type TxDetailStorer interface {
-	GetTransactionDetailBySpenderId(id string) (TransactionWithDetail, error)
+	GetTransactionDetailBySpenderId(ctx context.Context, id string, offset int, limit int) (TransactionWithDetail, error)
 }
 
-func New(cfg config.FeatureFlag, db TxDetailStorer) *handler {
-	return &handler{cfg, db}
+func New(cfg config.FeatureFlag, storer TxDetailStorer) *handler {
+	return &handler{cfg, storer}
 }
 
 /*
@@ -62,11 +66,35 @@ func New(cfg config.FeatureFlag, db TxDetailStorer) *handler {
 func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 
 	logger := mlog.L(c)
-	//ctx := c.Request().Context()
+	ctx := c.Request().Context()
 
 	id := c.Param("id")
 
-	txDetail, err := h.db.GetTransactionDetailBySpenderId(id)
+	//Get page number
+	rawPage := c.QueryParam("page")
+	page := 1
+	if rawPage != "" {
+		var err error
+		page, err = strconv.Atoi(rawPage)
+		if err != nil {
+			logger.Error("bad request", zap.Error(err))
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+	}
+
+	//Get limit
+	rawLimit := c.QueryParam("limit")
+	limit := 10
+	if rawLimit != "" {
+		var err error
+		limit, err = strconv.Atoi(rawLimit)
+		if err != nil {
+			logger.Error("bad request", zap.Error(err))
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+	}
+
+	txDetail, err := h.storer.GetTransactionDetailBySpenderId(ctx, id, page, limit)
 	if err != nil {
 		logger.Error("query error", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -76,39 +104,104 @@ func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 
 }
 
-func GetTransactionDetailBySpenderId(id string) (TransactionWithDetail, error) {
+type Postgres struct {
+	Db *sql.DB
+}
+
+func (p *Postgres) GetTransactionDetailBySpenderId(ctx context.Context, id string, page int, limit int) (TransactionWithDetail, error) {
+
+	//Query
+	//SELECT * FROM transaction WHERE spender_id = id
+	skip := (page - 1) * limit
+	//OFFSET 0
+	//LIMIT 10
+	rows, err := p.Db.QueryContext(ctx, `SELECT id,date,amount,category, transaction_type,spender_id, note, image_url FROM transaction WHERE spender_id = $1 OFFSET $2 LIMIT $3`, id, skip, limit)
+	if err != nil {
+
+		return TransactionWithDetail{}, err
+	}
+	defer rows.Close()
+
+	var txs []Transaction
+	for rows.Next() {
+		var tx Transaction
+		err := rows.Scan(&tx.ID, &tx.Date, &tx.Amount, &tx.Category, &tx.TransactionType, &tx.SpenderID, &tx.Note, &tx.ImageURL)
+		if err != nil {
+			return TransactionWithDetail{}, err
+		}
+		txs = append(txs, tx)
+	}
+
+	var total int
+	errCountTx := p.Db.QueryRowContext(ctx, `SELECT COUNT(*) FROM transaction WHERE spender_id = $1`, id).Scan(&total)
+	if errCountTx != nil {
+		return TransactionWithDetail{}, err
+	}
+
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+
 	return TransactionWithDetail{
-		Transactions: []Transaction{
-			{
-				ID:              "1",
-				Date:            "2024-04-30T09:00:00.000Z",
-				Amount:          1000,
-				Category:        "Food",
-				TransactionType: "expense",
-				SpenderID:       1,
-				Note:            "Lunch",
-				ImageURL:        "https://example.com/image1.jpg",
-			},
-			{
-				ID:              "2",
-				Date:            "2024-04-29T19:00:00.000Z",
-				Amount:          2000,
-				Category:        "Transport",
-				TransactionType: "income",
-				SpenderID:       1,
-				Note:            "Salary",
-				ImageURL:        "https://example.com/image2.jpg",
-			},
-		},
-		Summary: TransactionSummary{
-			TotalIncome:    2000,
-			TotalExpenses:  1000,
-			CurrentBalance: 1000,
-		},
-		Pagination: PaginationInfo{
-			CurrentPage: 1,
-			TotalPages:  1,
-			PerPage:     10,
-		},
+		Transactions: txs,
+		Summary:      CalcTransactionSummary(txs),
+		Pagination:   PaginationInfo{page, totalPages, limit},
 	}, nil
+
+	/*
+		return TransactionWithDetail{
+			Transactions: []Transaction{
+				{
+					ID:              "1",
+					Date:            "2024-04-30T09:00:00.000Z",
+					Amount:          1000,
+					Category:        "Food",
+					TransactionType: "expense",
+					SpenderID:       1,
+					Note:            "Lunch",
+					ImageURL:        "https://example.com/image1.jpg",
+				},
+				{
+					ID:              "2",
+					Date:            "2024-04-29T19:00:00.000Z",
+					Amount:          2000,
+					Category:        "Transport",
+					TransactionType: "income",
+					SpenderID:       1,
+					Note:            "Salary",
+					ImageURL:        "https://example.com/image2.jpg",
+				},
+			},
+			Summary: TransactionSummary{
+				TotalIncome:    2000,
+				TotalExpenses:  1000,
+				CurrentBalance: 1000,
+			},
+			Pagination: PaginationInfo{
+				CurrentPage: 1,
+				TotalPages:  1,
+				PerPage:     10,
+			},
+		}, nil
+	*/
+}
+
+func CalcTransactionSummary(txs []Transaction) TransactionSummary {
+	//Calculate total income
+
+	var totalIncome float64
+	var totalExpenses float64
+	for _, tx := range txs {
+		if tx.TransactionType == "income" {
+			//Calculate total income
+			totalIncome += tx.Amount
+		} else if tx.TransactionType == "expense" {
+			//Calculate total expenses
+			totalExpenses += tx.Amount
+		}
+	}
+
+	return TransactionSummary{
+		TotalIncome:    totalIncome,
+		TotalExpenses:  totalExpenses,
+		CurrentBalance: totalIncome - totalExpenses,
+	}
 }
