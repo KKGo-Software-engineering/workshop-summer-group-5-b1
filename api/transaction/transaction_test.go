@@ -18,7 +18,7 @@ func TestTransaction(t *testing.T) {
 		e := echo.New()
 		defer e.Close()
 
-		req := httptest.NewRequest(http.MethodPost, "/transactions", strings.NewReader(`{"date": "2021-08-01", "amount": 1000, "category": "food", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`))
+		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"date": "2021-08-01", "amount": 1000, "category": "food", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`))
 		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 		rec := httptest.NewRecorder()
 		c := e.NewContext(req, rec)
