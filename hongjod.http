@@ -3,5 +3,8 @@
 GET {{HostAddress}}/spenders/1
 
 
-### Get Speender Transactions by Spender ID
+### Get Spender Transactions by Spender ID
 GET {{HostAddress}}/spenders/1/transactions
+
+### Get Spender Transactions Summary by Spender ID
+GET {{HostAddress}}/spenders/1/transactions/summary

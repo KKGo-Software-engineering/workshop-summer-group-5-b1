@@ -20,6 +20,7 @@ type handler struct {
 
 type TxDetailStorer interface {
 	GetTransactionDetailBySpenderId(ctx context.Context, id string, offset int, limit int) (TransactionWithDetail, error)
+	GetTransactionSummaryBySpenderId(ctx context.Context, id string) (TransactionSummary, error)
 }
 
 func New(cfg config.FeatureFlag, storer TxDetailStorer) *handler {
@@ -173,3 +174,54 @@ func CalcTransactionSummary(txs []Transaction) TransactionSummary {
 
 //=========================================================
 // GET /api/v1/spenders/{id}/transactions/summary
+
+func (h handler) GetTransactionSummaryBySpenderIdHandler(c echo.Context) error {
+
+	logger := mlog.L(c)
+	ctx := c.Request().Context()
+
+	id := c.Param("id")
+
+	txSummary, err := h.storer.GetTransactionSummaryBySpenderId(ctx, id)
+	if err != nil {
+		logger.Error("query error", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, txSummary)
+}
+
+func (p *Postgres) GetTransactionSummaryBySpenderId(ctx context.Context, id string) (TransactionSummary, error) {
+
+	//Query
+	//SELECT * FROM transaction WHERE spender_id = id
+	rows, err := p.Db.QueryContext(ctx, `SELECT amount, transaction_type FROM transaction WHERE spender_id = $1`, id)
+	if err != nil {
+		return TransactionSummary{}, err
+	}
+	defer rows.Close()
+
+	var totalIncome float64
+	var totalExpenses float64
+	for rows.Next() {
+		var amount float64
+		var transactionType string
+		err := rows.Scan(&amount, &transactionType)
+		if err != nil {
+			return TransactionSummary{}, err
+		}
+		if transactionType == "income" {
+			//Calculate total income
+			totalIncome += amount
+		} else if transactionType == "expense" {
+			//Calculate total expenses
+			totalExpenses += amount
+		}
+	}
+
+	return TransactionSummary{
+		TotalIncome:    totalIncome,
+		TotalExpenses:  totalExpenses,
+		CurrentBalance: totalIncome - totalExpenses,
+	}, nil
+}

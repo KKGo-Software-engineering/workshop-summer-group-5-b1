@@ -106,10 +106,50 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 
 }
 
+func TestGetTransactionSummaryBySpenderId(t *testing.T) {
+	t.Run("get transaction summary by spender id", func(t *testing.T) {
+		//create a new echo instance
+		e := echo.New()
+		defer e.Close()
+
+		//create a new http request
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/spenders/1/transactions/summary", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		StubTxDetailStorer := StubTxDetailStorer{
+			txSummary: TransactionSummary{
+				TotalIncome:    2000,
+				TotalExpenses:  1000,
+				CurrentBalance: 1000,
+			},
+		}
+
+		h := New(config.FeatureFlag{}, StubTxDetailStorer)
+		err := h.GetTransactionSummaryBySpenderIdHandler(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{
+			"total_income": 2000,
+			"total_expenses": 1000,
+			"current_balance": 1000
+		}`, rec.Body.String())
+
+	})
+}
+
 type StubTxDetailStorer struct {
-	txDetail TransactionWithDetail
+	txDetail  TransactionWithDetail
+	txSummary TransactionSummary
 }
 
 func (s StubTxDetailStorer) GetTransactionDetailBySpenderId(ctx context.Context, id string, offset int, limit int) (TransactionWithDetail, error) {
 	return s.txDetail, nil
+}
+
+func (s StubTxDetailStorer) GetTransactionSummaryBySpenderId(ctx context.Context, id string) (TransactionSummary, error) {
+	return s.txSummary, nil
 }

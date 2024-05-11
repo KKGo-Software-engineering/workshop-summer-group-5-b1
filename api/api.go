@@ -44,6 +44,7 @@ func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
 	{
 		h := transaction.New(cfg.FeatureFlag, &transaction.Postgres{Db: db})
 		v1.GET("/spenders/:id/transactions", h.GetTransactionDetailBySpenderIdHandler)
+		v1.GET("/spenders/:id/transactions/summary", h.GetTransactionSummaryBySpenderIdHandler)
 	}
 
 	return &Server{e}
