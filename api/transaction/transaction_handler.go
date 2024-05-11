@@ -46,3 +46,7 @@ func (h handlerTransaction) Create(c echo.Context) error {
 	logger.Info("create successfully", zap.String("id", insertTransaction.ID))
 	return c.JSON(http.StatusCreated, insertTransaction)
 }
+
+func (h handler) Update(c echo.Context) error {
+	return c.JSON(http.StatusOK, "not implemented yet")
+}

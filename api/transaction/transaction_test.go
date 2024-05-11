@@ -43,3 +43,9 @@ func TestTransaction(t *testing.T) {
 		assert.JSONEq(t, `{"id": "1", "date": "2021-08-01", "amount": 1000, "category": "food", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`, rec.Body.String())
 	})
 }
+
+func TestUpdateTransaction(t *testing.T) {
+	t.Run("update transaction", func(t *testing.T) {
+		t.Skip("not implemented yet")
+	})
+}
