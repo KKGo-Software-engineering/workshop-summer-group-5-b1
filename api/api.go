@@ -50,6 +50,7 @@ func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
 	{
 		h := transaction.NewHandler(cfg.FeatureFlag, db)
 		v1.POST("/transactions", h.Create)
+		v1.PUT("/transactions/:id", h.Update)
 	}
 
 	return &Server{e}
