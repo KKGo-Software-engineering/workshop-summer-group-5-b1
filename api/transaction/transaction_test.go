@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTransaction(t *testing.T) {
+func TestCreateTransaction(t *testing.T) {
 	t.Run("create transaction", func(t *testing.T) {
 
 		e := echo.New()
