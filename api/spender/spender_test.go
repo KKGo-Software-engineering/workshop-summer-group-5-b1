@@ -170,4 +170,28 @@ func TestGetSpenderByID(t *testing.T) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.JSONEq(t, `{"id": 1, "name": "HongJot", "email": "aa@bb.com"} `, rec.Body.String())
 	})
+
+	//TODO add test case for failed on database
+
+	t.Run("get spender by id failed on database", func(t *testing.T) {
+		e := echo.New()
+		defer e.Close()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("not_exist_id")
+
+		db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		defer db.Close()
+
+		mock.ExpectQuery(`SELECT id, name, email FROM spender WHERE id = $1`).WithArgs("not_exist_id").WillReturnError(assert.AnError)
+
+		h := New(config.FeatureFlag{}, db)
+		err := h.GetByID(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+	})
 }

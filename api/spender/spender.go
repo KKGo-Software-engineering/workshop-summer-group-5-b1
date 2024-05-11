@@ -3,6 +3,7 @@ package spender
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 
 	"github.com/KKGo-Software-engineering/workshop-summer/api/config"
 	"github.com/kkgo-software-engineering/workshop/mlog"
@@ -85,6 +86,12 @@ func (h handler) GetByID(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	id := c.Param("id")
+
+	//check if id is valid
+	if _, err := strconv.Atoi(id); err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid spender id")
+	}
+
 	var sp Spender
 	err := h.db.QueryRowContext(ctx, `SELECT id, name, email FROM spender WHERE id = $1`, id).Scan(&sp.ID, &sp.Name, &sp.Email)
 	if err != nil {
