@@ -47,30 +47,34 @@ func TestCreateTransaction(t *testing.T) {
 func TestUpdateTransaction(t *testing.T) {
 	t.Run("update transaction", func(t *testing.T) {
 
-		// e := echo.New()
-		// defer e.Close()
+		e := echo.New()
+		defer e.Close()
 
-		// req := httptest.NewRequest(http.MethodPut, "/", strings.NewReader(`{"date": "2021-08-01", "amount": 1000, "category": "food", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`))
-		// req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-		// rec := httptest.NewRecorder()
-		// c := e.NewContext(req, rec)
+		req := httptest.NewRequest(http.MethodPut, "/", strings.NewReader(`{"date": "2021-08-01", "amount": 555, "category": "shopping", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`))
+		req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
 
-		// db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
-		// if err != nil {
-		// 	t.Fatalf("error creating mock: %v", err)
-		// }
-		// defer db.Close()
+		id := c.Param("id")
+		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		if err != nil {
+			t.Fatalf("error creating mock: %v", err)
+		}
+		defer db.Close()
 
-		// column := []string{"id", "date", "amount", "category", "transaction_type", "spender_id", "note", "image_url"}
-		// // mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 1000.0, "food", "expense", 1, "lunch", "http://image.com").WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 1000, "food", "expense", 1, "lunch", "http://image.com"))
-		// mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com", 1).WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 1000, "food", "expense", 1, "lunch", "http://image.com"))
+		column := []string{"id", "date", "amount", "category", "transaction_type", "spender_id", "note", "image_url"}
+		mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com", id).WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com"))
 
-		// h := New(config.FeatureFlag{}, db)
-		// err = h.Update(c)
-		// if err != nil {
-		// 	t.Fatalf("error creating transaction: %v", err)
-		// }
+		h := New(config.FeatureFlag{}, db)
+		err = h.Update(c)
+		if err != nil {
+			t.Fatalf("error updating transaction: %v", err)
+		}
 
-		t.Skip("not implemented yet")
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{"id": "1", "date": "2021-08-01", "amount": 555, "category": "shopping", "transaction_type": "expense", "spender_id": 1, "note": "lunch", "image_url": "http://image.com"}`, rec.Body.String())
 	})
 }
