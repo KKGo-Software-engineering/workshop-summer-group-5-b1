@@ -104,6 +104,125 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 
 	})
 
+	t.Run("get transaction detail by spender id and invalid page", func(t *testing.T) {
+		//create a new echo instance
+		e := echo.New()
+		defer e.Close()
+
+		/*
+			page=NotInt&limit=10
+		*/
+		//create a new http request
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/spenders/1/transactions?page=NotInt", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		StubTxDetailStorer := StubTxDetailStorer{
+			txDetail: TransactionWithDetail{
+				Transactions: []Transaction{
+					{
+						ID:              "1",
+						Date:            "2024-04-30T09:00:00.000Z",
+						Amount:          1000,
+						Category:        "Food",
+						TransactionType: "expense",
+						SpenderID:       1,
+						Note:            "Lunch",
+						ImageURL:        "https://example.com/image1.jpg",
+					},
+					{
+						ID:              "2",
+						Date:            "2024-04-29T19:00:00.000Z",
+						Amount:          2000,
+						Category:        "Transport",
+						TransactionType: "income",
+						SpenderID:       1,
+						Note:            "Salary",
+						ImageURL:        "https://example.com/image2.jpg",
+					},
+				},
+				Summary: TransactionSummary{
+					TotalIncome:    2000,
+					TotalExpenses:  1000,
+					CurrentBalance: 1000,
+				},
+				Pagination: PaginationInfo{
+					CurrentPage: 1,
+					TotalPages:  1,
+					PerPage:     10,
+				},
+			},
+		}
+
+		h := New(config.FeatureFlag{}, StubTxDetailStorer)
+		err := h.GetTransactionDetailBySpenderIdHandler(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.JSONEq(t, `"Please check your page number"`, rec.Body.String())
+	})
+
+	t.Run("get transaction detail by spender id and invalid limit", func(t *testing.T) {
+		//create a new echo instance
+		e := echo.New()
+		defer e.Close()
+
+		/*
+			page=NotInt&limit=10
+		*/
+		//create a new http request
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/spenders/1/transactions?page=1&limit=NotInt", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		StubTxDetailStorer := StubTxDetailStorer{
+			txDetail: TransactionWithDetail{
+				Transactions: []Transaction{
+					{
+						ID:              "1",
+						Date:            "2024-04-30T09:00:00.000Z",
+						Amount:          1000,
+						Category:        "Food",
+						TransactionType: "expense",
+						SpenderID:       1,
+						Note:            "Lunch",
+						ImageURL:        "https://example.com/image1.jpg",
+					},
+					{
+						ID:              "2",
+						Date:            "2024-04-29T19:00:00.000Z",
+						Amount:          2000,
+						Category:        "Transport",
+						TransactionType: "income",
+						SpenderID:       1,
+						Note:            "Salary",
+						ImageURL:        "https://example.com/image2.jpg",
+					},
+				},
+				Summary: TransactionSummary{
+					TotalIncome:    2000,
+					TotalExpenses:  1000,
+					CurrentBalance: 1000,
+				},
+				Pagination: PaginationInfo{
+					CurrentPage: 1,
+					TotalPages:  1,
+					PerPage:     10,
+				},
+			},
+		}
+
+		h := New(config.FeatureFlag{}, StubTxDetailStorer)
+		err := h.GetTransactionDetailBySpenderIdHandler(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.JSONEq(t, `"Please check your page limit"`, rec.Body.String())
+	})
 }
 
 func TestGetTransactionSummaryBySpenderId(t *testing.T) {

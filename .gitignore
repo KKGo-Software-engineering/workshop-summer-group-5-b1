@@ -7,3 +7,5 @@ infra/iac/sonarqube/ansible/creds/*
 .env
 dev.env
 launch.json
+c.out
+coverage.html

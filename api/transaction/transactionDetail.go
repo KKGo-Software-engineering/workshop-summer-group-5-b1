@@ -81,7 +81,7 @@ func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 		page, err = strconv.Atoi(rawPage)
 		if err != nil {
 			logger.Error("bad request", zap.Error(err))
-			return c.JSON(http.StatusBadRequest, err.Error())
+			return c.JSON(http.StatusBadRequest, "Please check your page number")
 		}
 	}
 
@@ -93,7 +93,7 @@ func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 		limit, err = strconv.Atoi(rawLimit)
 		if err != nil {
 			logger.Error("bad request", zap.Error(err))
-			return c.JSON(http.StatusBadRequest, err.Error())
+			return c.JSON(http.StatusBadRequest, "Please check your page limit")
 		}
 	}
 
