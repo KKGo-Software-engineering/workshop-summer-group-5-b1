@@ -56,6 +56,7 @@ type TransactionReqBody struct {
 	Note            string  `json:"note"`
 	ImageURL        string  `json:"image_url"`
 }
+// For pre-commit
 // GetTransactionsHandler returns a handler function to fetch transactions with optional pagination and filtering.
 func GetTransactionsHandler(db *sql.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {

@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// For pre-commit
 func TestGetTransactionsHandler(t *testing.T) {
 	// Create a new instance of Echo
 	e := echo.New()
