@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS "transaction" (
   amount DECIMAL(10,2) DEFAULT 0,
   category VARCHAR(50) DEFAULT '',
   transaction_type VARCHAR(20) DEFAULT '',
-  spender_id INT,
   note VARCHAR(255) DEFAULT '',
   image_url VARCHAR(255) DEFAULT ''
 );
