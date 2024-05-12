@@ -48,7 +48,7 @@ func (h handlerTransaction) Create(c echo.Context) error {
 	return c.JSON(http.StatusCreated, insertTransaction)
 }
 
-func (h handler) Update(c echo.Context) error {
+func (h handlerTransaction) Update(c echo.Context) error {
 
 	logger := mlog.L(c)
 	ctx := c.Request().Context()

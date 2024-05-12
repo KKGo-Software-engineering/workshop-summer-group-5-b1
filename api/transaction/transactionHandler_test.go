@@ -33,6 +33,7 @@ func TestCreateTransaction(t *testing.T) {
 		mock.ExpectQuery(cStmt).WithArgs("2021-08-01", 1000.0, "food", "expense", 1, "lunch", "http://image.com").WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 1000, "food", "expense", 1, "lunch", "http://image.com"))
 
 		h := NewHandler(config.FeatureFlag{}, db)
+
 		err = h.Create(c)
 		if err != nil {
 			t.Fatalf("error creating transaction: %v", err)
@@ -67,7 +68,7 @@ func TestUpdateTransaction(t *testing.T) {
 		column := []string{"id", "date", "amount", "category", "transaction_type", "spender_id", "note", "image_url"}
 		mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com", id).WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com"))
 
-		h := New(config.FeatureFlag{}, db)
+		h := NewHandler(config.FeatureFlag{}, db)
 		err = h.Update(c)
 		if err != nil {
 			t.Fatalf("error updating transaction: %v", err)
