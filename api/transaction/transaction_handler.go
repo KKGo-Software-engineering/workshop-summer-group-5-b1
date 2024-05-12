@@ -17,7 +17,7 @@ type handlerTransaction struct {
 
 const (
 	cStmt = `INSERT INTO transaction (date, amount, category, transaction_type, spender_id, note, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id;`
-	uStmt = `UPDATE transaction SET date = $1, amount = $2, category = $3, transaction_type = $4, spender_id = $5, note = $6, image_url = $7 WHERE id = $8 RETURNING *;`
+	uStmt = `UPDATE transaction SET date = $1, amount = $2, category = $3, transaction_type = $4, spender_id = $5, note = $6, image_url = $7 WHERE id = $8;`
 )
 
 func NewHandler(cfg config.FeatureFlag, db *sql.DB) *handlerTransaction {
@@ -71,14 +71,25 @@ func (h handlerTransaction) Update(c echo.Context) error {
 	}
 
 	id := c.Param("id")
-	var updatedTransaction Transaction
-	err = h.db.QueryRowContext(ctx, uStmt, trBody.Date, trBody.Amount, trBody.Category, trBody.TransactionType, trBody.SpenderID, trBody.Note, trBody.ImageURL, id).Scan(&updatedTransaction.ID, &updatedTransaction.Date, &updatedTransaction.Amount, &updatedTransaction.Category, &updatedTransaction.TransactionType, &updatedTransaction.SpenderID, &updatedTransaction.Note, &updatedTransaction.ImageURL)
+	// var updatedTransaction Transaction
+	_ = h.db.QueryRowContext(ctx, uStmt, trBody.Date, trBody.Amount, trBody.Category, trBody.TransactionType, trBody.SpenderID, trBody.Note, trBody.ImageURL, id).Scan()
+
+	transaction := Transaction{
+		ID:              id,
+		Date:            trBody.Date,
+		Amount:          trBody.Amount,
+		Category:        trBody.Category,
+		TransactionType: trBody.TransactionType,
+		SpenderID:       trBody.SpenderID,
+		Note:            trBody.Note,
+		ImageURL:        trBody.ImageURL,
+	}
 
 	if err != nil {
 		logger.Error("query row error", zap.Error(err))
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	logger.Info("create successfully", zap.String("id", updatedTransaction.ID))
-	return c.JSON(http.StatusOK, updatedTransaction)
+	logger.Info("create successfully", zap.String("id", id))
+	return c.JSON(http.StatusOK, transaction)
 }

@@ -65,8 +65,7 @@ func TestUpdateTransaction(t *testing.T) {
 		}
 		defer db.Close()
 
-		column := []string{"id", "date", "amount", "category", "transaction_type", "spender_id", "note", "image_url"}
-		mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com", id).WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com"))
+		mock.ExpectQuery(uStmt).WithArgs("2021-08-01", 555.0, "shopping", "expense", 1, "lunch", "http://image.com", id)
 
 		h := NewHandler(config.FeatureFlag{}, db)
 		err = h.Update(c)
