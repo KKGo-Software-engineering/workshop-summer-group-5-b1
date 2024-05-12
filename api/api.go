@@ -47,5 +47,10 @@ func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
 		v1.GET("/spenders/:id/transactions/summary", h.GetTransactionSummaryBySpenderIdHandler)
 	}
 
+	{
+		h := transaction.NewHandler(cfg.FeatureFlag, db)
+		v1.POST("/transactions", h.Create)
+	}
+
 	return &Server{e}
 }

@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type handler struct {
+type handlerTransaction struct {
 	flag config.FeatureFlag
 	db   *sql.DB
 }
@@ -19,11 +19,11 @@ const (
 	cStmt = `INSERT INTO transaction (date, amount, category, transaction_type, spender_id, note, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;`
 )
 
-func New(cfg config.FeatureFlag, db *sql.DB) *handler {
-	return &handler{cfg, db}
+func NewHandler(cfg config.FeatureFlag, db *sql.DB) *handlerTransaction {
+	return &handlerTransaction{cfg, db}
 }
 
-func (h handler) Create(c echo.Context) error {
+func (h handlerTransaction) Create(c echo.Context) error {
 
 	logger := mlog.L(c)
 	ctx := c.Request().Context()
