@@ -25,42 +25,7 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		StubTxDetailStorer := StubTxDetailStorer{
-			txDetail: TransactionWithDetail{
-				Transactions: []Transaction{
-					{
-						ID:              "1",
-						Date:            "2024-04-30T09:00:00.000Z",
-						Amount:          1000,
-						Category:        "Food",
-						TransactionType: "expense",
-						SpenderID:       1,
-						Note:            "Lunch",
-						ImageURL:        "https://example.com/image1.jpg",
-					},
-					{
-						ID:              "2",
-						Date:            "2024-04-29T19:00:00.000Z",
-						Amount:          2000,
-						Category:        "Transport",
-						TransactionType: "income",
-						SpenderID:       1,
-						Note:            "Salary",
-						ImageURL:        "https://example.com/image2.jpg",
-					},
-				},
-				Summary: TransactionSummary{
-					TotalIncome:    2000,
-					TotalExpenses:  1000,
-					CurrentBalance: 1000,
-				},
-				Pagination: PaginationInfo{
-					CurrentPage: 1,
-					TotalPages:  1,
-					PerPage:     10,
-				},
-			},
-		}
+		StubTxDetailStorer := MockStubData()
 
 		h := New(config.FeatureFlag{}, StubTxDetailStorer)
 		err := h.GetTransactionDetailBySpenderIdHandler(c)
@@ -120,42 +85,7 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		StubTxDetailStorer := StubTxDetailStorer{
-			txDetail: TransactionWithDetail{
-				Transactions: []Transaction{
-					{
-						ID:              "1",
-						Date:            "2024-04-30T09:00:00.000Z",
-						Amount:          1000,
-						Category:        "Food",
-						TransactionType: "expense",
-						SpenderID:       1,
-						Note:            "Lunch",
-						ImageURL:        "https://example.com/image1.jpg",
-					},
-					{
-						ID:              "2",
-						Date:            "2024-04-29T19:00:00.000Z",
-						Amount:          2000,
-						Category:        "Transport",
-						TransactionType: "income",
-						SpenderID:       1,
-						Note:            "Salary",
-						ImageURL:        "https://example.com/image2.jpg",
-					},
-				},
-				Summary: TransactionSummary{
-					TotalIncome:    2000,
-					TotalExpenses:  1000,
-					CurrentBalance: 1000,
-				},
-				Pagination: PaginationInfo{
-					CurrentPage: 1,
-					TotalPages:  1,
-					PerPage:     10,
-				},
-			},
-		}
+		StubTxDetailStorer := MockStubData()
 
 		h := New(config.FeatureFlag{}, StubTxDetailStorer)
 		err := h.GetTransactionDetailBySpenderIdHandler(c)
@@ -180,42 +110,7 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 		c.SetParamNames("id")
 		c.SetParamValues("1")
 
-		StubTxDetailStorer := StubTxDetailStorer{
-			txDetail: TransactionWithDetail{
-				Transactions: []Transaction{
-					{
-						ID:              "1",
-						Date:            "2024-04-30T09:00:00.000Z",
-						Amount:          1000,
-						Category:        "Food",
-						TransactionType: "expense",
-						SpenderID:       1,
-						Note:            "Lunch",
-						ImageURL:        "https://example.com/image1.jpg",
-					},
-					{
-						ID:              "2",
-						Date:            "2024-04-29T19:00:00.000Z",
-						Amount:          2000,
-						Category:        "Transport",
-						TransactionType: "income",
-						SpenderID:       1,
-						Note:            "Salary",
-						ImageURL:        "https://example.com/image2.jpg",
-					},
-				},
-				Summary: TransactionSummary{
-					TotalIncome:    2000,
-					TotalExpenses:  1000,
-					CurrentBalance: 1000,
-				},
-				Pagination: PaginationInfo{
-					CurrentPage: 1,
-					TotalPages:  1,
-					PerPage:     10,
-				},
-			},
-		}
+		StubTxDetailStorer := MockStubData()
 
 		h := New(config.FeatureFlag{}, StubTxDetailStorer)
 		err := h.GetTransactionDetailBySpenderIdHandler(c)
@@ -224,6 +119,46 @@ func TestGetTransactionDetailBySpenderId(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, rec.Code)
 		assert.JSONEq(t, `"Please check your page limit"`, rec.Body.String())
 	})
+}
+
+func MockStubData() StubTxDetailStorer {
+	return StubTxDetailStorer{
+		txDetail: TransactionWithDetail{
+			Transactions: []Transaction{
+				{
+					ID:              "1",
+					Date:            "2024-04-30T09:00:00.000Z",
+					Amount:          1000,
+					Category:        "Food",
+					TransactionType: "expense",
+					SpenderID:       1,
+					Note:            "Lunch",
+					ImageURL:        "https://example.com/image1.jpg",
+				},
+				{
+					ID:              "2",
+					Date:            "2024-04-29T19:00:00.000Z",
+					Amount:          2000,
+					Category:        "Transport",
+					TransactionType: "income",
+					SpenderID:       1,
+					Note:            "Salary",
+					ImageURL:        "https://example.com/image2.jpg",
+				},
+			},
+			Summary: TransactionSummary{},
+			Pagination: PaginationInfo{
+				CurrentPage: 1,
+				TotalPages:  1,
+				PerPage:     10,
+			},
+		},
+		txSummary: TransactionSummary{
+			TotalIncome:    2000,
+			TotalExpenses:  1000,
+			CurrentBalance: 1000,
+		},
+	}
 }
 
 func TestGetTransactionSummaryBySpenderId(t *testing.T) {
@@ -301,6 +236,10 @@ func TestGetTransactionDetailBySpenderIdWithSQLMock(t *testing.T) {
 		rowCount := sqlmock.NewRows([]string{"count"}).AddRow(2)
 		mock.ExpectQuery(`SELECT COUNT(*) FROM transaction WHERE spender_id = $1`).WithArgs("1").WillReturnRows(rowCount)
 
+		rowsSummary := sqlmock.NewRows([]string{"total_income", "total_expenses", "current_balance"}).
+			AddRow(2000, 1000, 1000)
+		mock.ExpectQuery(`SELECT SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) AS total_income, SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) AS total_expenses, SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE -amount END) AS current_balance FROM transaction WHERE spender_id = $1`).WithArgs("1").WillReturnRows(rowsSummary)
+
 		h := New(config.FeatureFlag{}, &Postgres{Db: db})
 		err := h.GetTransactionDetailBySpenderIdHandler(c)
 
@@ -343,4 +282,37 @@ func TestGetTransactionDetailBySpenderIdWithSQLMock(t *testing.T) {
 		}`, tmp)
 	})
 
+}
+
+func TestGetTransactionSummaryBySpenderIdWithSQLMock(t *testing.T) {
+	t.Run("get transaction summary by spender id", func(t *testing.T) {
+		//create a new echo instance
+		e := echo.New()
+		defer e.Close()
+
+		//create a new http request
+		req := httptest.NewRequest(http.MethodGet, "/api/v1/spenders/1/transactions/summary", nil)
+		rec := httptest.NewRecorder()
+		c := e.NewContext(req, rec)
+		c.SetParamNames("id")
+		c.SetParamValues("1")
+
+		db, mock, _ := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
+		defer db.Close()
+
+		rows := sqlmock.NewRows([]string{"total_income", "total_expenses", "current_balance"}).
+			AddRow(2000, 1000, 1000)
+		mock.ExpectQuery(`SELECT SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) AS total_income, SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) AS total_expenses, SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE -amount END) AS current_balance FROM transaction WHERE spender_id = $1`).WithArgs("1").WillReturnRows(rows)
+
+		h := New(config.FeatureFlag{}, &Postgres{Db: db})
+		err := h.GetTransactionSummaryBySpenderIdHandler(c)
+
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, rec.Code)
+		assert.JSONEq(t, `{
+			"total_income": 2000,
+			"total_expenses": 1000,
+			"current_balance": 1000
+		}`, rec.Body.String())
+	})
 }

@@ -103,6 +103,12 @@ func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
+	txSum, errTxSum := h.storer.GetTransactionSummaryBySpenderId(ctx, id)
+	if errTxSum != nil {
+		logger.Error("query error", zap.Error(err))
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	txDetail.Summary = txSum
 	return c.JSON(http.StatusOK, txDetail)
 
 }
@@ -135,6 +141,7 @@ func (p *Postgres) GetTransactionDetailBySpenderId(ctx context.Context, id strin
 		txs = append(txs, tx)
 	}
 
+	//Count total pages
 	var total int
 	errCountTx := p.Db.QueryRowContext(ctx, `SELECT COUNT(*) FROM transaction WHERE spender_id = $1`, id).Scan(&total)
 	if errCountTx != nil {
@@ -145,36 +152,13 @@ func (p *Postgres) GetTransactionDetailBySpenderId(ctx context.Context, id strin
 
 	return TransactionWithDetail{
 		Transactions: txs,
-		Summary:      CalcTransactionSummary(txs),
+		Summary:      TransactionSummary{},
 		Pagination:   PaginationInfo{page, totalPages, limit},
 	}, nil
 }
 
-func CalcTransactionSummary(txs []Transaction) TransactionSummary {
-	//Calculate total income
-
-	var totalIncome float64
-	var totalExpenses float64
-	for _, tx := range txs {
-		if tx.TransactionType == "income" {
-			//Calculate total income
-			totalIncome += tx.Amount
-		} else if tx.TransactionType == "expense" {
-			//Calculate total expenses
-			totalExpenses += tx.Amount
-		}
-	}
-
-	return TransactionSummary{
-		TotalIncome:    totalIncome,
-		TotalExpenses:  totalExpenses,
-		CurrentBalance: totalIncome - totalExpenses,
-	}
-}
-
-//=========================================================
+// =========================================================
 // GET /api/v1/spenders/{id}/transactions/summary
-
 func (h handler) GetTransactionSummaryBySpenderIdHandler(c echo.Context) error {
 
 	logger := mlog.L(c)
@@ -195,7 +179,7 @@ func (p *Postgres) GetTransactionSummaryBySpenderId(ctx context.Context, id stri
 
 	//Query
 	//SELECT * FROM transaction WHERE spender_id = id
-	rows, err := p.Db.QueryContext(ctx, `SELECT amount, transaction_type FROM transaction WHERE spender_id = $1`, id)
+	rows, err := p.Db.QueryContext(ctx, `SELECT SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE 0 END) AS total_income, SUM(CASE WHEN transaction_type = 'expense' THEN amount ELSE 0 END) AS total_expenses, SUM(CASE WHEN transaction_type = 'income' THEN amount ELSE -amount END) AS current_balance FROM transaction WHERE spender_id = $1`, id)
 	if err != nil {
 		return TransactionSummary{}, err
 	}
@@ -203,19 +187,11 @@ func (p *Postgres) GetTransactionSummaryBySpenderId(ctx context.Context, id stri
 
 	var totalIncome float64
 	var totalExpenses float64
+	var currentBalance float64
 	for rows.Next() {
-		var amount float64
-		var transactionType string
-		err := rows.Scan(&amount, &transactionType)
+		err := rows.Scan(&totalIncome, &totalExpenses, &currentBalance)
 		if err != nil {
 			return TransactionSummary{}, err
-		}
-		if transactionType == "income" {
-			//Calculate total income
-			totalIncome += amount
-		} else if transactionType == "expense" {
-			//Calculate total expenses
-			totalExpenses += amount
 		}
 	}
 
