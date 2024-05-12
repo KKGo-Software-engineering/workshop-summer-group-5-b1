@@ -100,13 +100,13 @@ func (h handler) GetTransactionDetailBySpenderIdHandler(c echo.Context) error {
 	txDetail, err := h.storer.GetTransactionDetailBySpenderId(ctx, id, page, limit)
 	if err != nil {
 		logger.Error("query error", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, "Please check server logs")
 	}
 
 	txSum, errTxSum := h.storer.GetTransactionSummaryBySpenderId(ctx, id)
 	if errTxSum != nil {
 		logger.Error("query error", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, "Please check server logs")
 	}
 	txDetail.Summary = txSum
 	return c.JSON(http.StatusOK, txDetail)
@@ -169,7 +169,7 @@ func (h handler) GetTransactionSummaryBySpenderIdHandler(c echo.Context) error {
 	txSummary, err := h.storer.GetTransactionSummaryBySpenderId(ctx, id)
 	if err != nil {
 		logger.Error("query error", zap.Error(err))
-		return c.JSON(http.StatusInternalServerError, err.Error())
+		return c.JSON(http.StatusInternalServerError, "Please check server logs")
 	}
 
 	return c.JSON(http.StatusOK, txSummary)
