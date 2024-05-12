@@ -33,6 +33,7 @@ func New(db *sql.DB, cfg config.Config, logger *zap.Logger) *Server {
 	v1.GET("/slow", health.Slow)
 	v1.GET("/health", health.Check(db))
 	v1.POST("/upload", eslip.Upload)
+	v1.GET("/transactions", transaction.GetTransactionsHandler(db))
 
 	{
 		h := spender.New(cfg.FeatureFlag, db)
