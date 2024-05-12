@@ -29,8 +29,8 @@ func TestCreateTransaction(t *testing.T) {
 		}
 		defer db.Close()
 
-		column := []string{"id", "date", "amount", "category", "transaction_type", "spender_id", "note", "image_url"}
-		mock.ExpectQuery(cStmt).WithArgs("2021-08-01", 1000.0, "food", "expense", 1, "lunch", "http://image.com").WillReturnRows(sqlmock.NewRows(column).AddRow(1, "2021-08-01", 1000, "food", "expense", 1, "lunch", "http://image.com"))
+		column := []string{"id"}
+		mock.ExpectQuery(cStmt).WithArgs("2021-08-01", 1000.0, "food", "expense", 1, "lunch", "http://image.com").WillReturnRows(sqlmock.NewRows(column).AddRow(1))
 
 		h := NewHandler(config.FeatureFlag{}, db)
 

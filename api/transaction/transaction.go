@@ -12,21 +12,21 @@ import (
 
 // Transaction represents the structure of a transaction record.
 type Transaction struct {
-	ID             string       `json:"id"`
-	Date           string `json:"date"`
-	Amount         float64   `json:"amount"`
-	Category       string    `json:"category"`
-	TransactionType string   `json:"transaction_type"`
-	SpenderID      int       `json:"spender_id"`
-	Note           string    `json:"note"`
-	ImageURL       string    `json:"image_url"`
+	ID              string  `json:"id"`
+	Date            string  `json:"date"`
+	Amount          float64 `json:"amount"`
+	Category        string  `json:"category"`
+	TransactionType string  `json:"transaction_type"`
+	SpenderID       int     `json:"spender_id"`
+	Note            string  `json:"note"`
+	ImageURL        string  `json:"image_url"`
 }
 
 // ResponseData includes transactions array, summary, and pagination details.
 type ResponseData struct {
-	Transactions []Transaction `json:"transactions"`
-	Summary      TransactionSummary       `json:"summary"`
-	Pagination   PaginationInfo    `json:"pagination"`
+	Transactions []Transaction      `json:"transactions"`
+	Summary      TransactionSummary `json:"summary"`
+	Pagination   PaginationInfo     `json:"pagination"`
 }
 
 type TransactionSummary struct {
@@ -56,6 +56,7 @@ type TransactionReqBody struct {
 	Note            string  `json:"note"`
 	ImageURL        string  `json:"image_url"`
 }
+
 // For pre-commit
 // GetTransactionsHandler returns a handler function to fetch transactions with optional pagination and filtering.
 func GetTransactionsHandler(db *sql.DB) echo.HandlerFunc {
@@ -109,9 +110,9 @@ func GetTransactionsHandler(db *sql.DB) echo.HandlerFunc {
 		var totalIncome, totalExpenses float64
 		for rows.Next() {
 			var t Transaction
-			var date sql.NullTime
+			// var date sql.NullTime
 			var amount sql.NullFloat64
-			if err := rows.Scan(&t.ID, &date, &amount, &t.Category, &t.TransactionType, &t.SpenderID, &t.Note, &t.ImageURL); err != nil {
+			if err := rows.Scan(&t.ID, &t.Date, &amount, &t.Category, &t.TransactionType, &t.SpenderID, &t.Note, &t.ImageURL); err != nil {
 				return echo.NewHTTPError(http.StatusInternalServerError, fmt.Sprintf("Error scanning transaction: %s", err.Error()))
 			}
 
