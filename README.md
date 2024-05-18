@@ -1,4 +1,4 @@
-# Go summer workshop
+# Go summer workshopp
 
 - [Go summer workshop](#go-summer-workshop)
 	- [Pre-requisites](#pre-requisites)
